@@ -1179,3 +1179,15 @@ MIT
 ### Sandstorm fork
 
 See [the pinned baseline, compatibility results and integration boundary](docs/sandstorm-fork.md).
+
+### Continuous integration
+
+[GitHub Actions](https://github.com/mnutt/tap-i18n/actions/workflows/tests.yml)
+runs the complete test suite on Meteor 3.5.1 for pushes and pull requests, with
+separate modern and legacy browser jobs. Each job runs the host compiler/runner
+checks and all Meteor fixture scenarios, including server tests, headless Chrome,
+and `Package.onTest`. Test logs and JSON reports are retained as workflow
+artifacts for seven days. The workflow can also be started manually.
+
+The optional Sandstorm catalog scenario still requires `SANDSTORM_I18N_DIR` and
+is not part of this self-contained CI suite.

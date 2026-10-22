@@ -1,0 +1,60 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  meteor:
+    name: Meteor 3.5.1 / ${{ matrix.arch }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [web.browser, web.browser.legacy]
+    env:
+      METEOR_RELEASE: 3.5.1
+      TEST_CLIENT_ARCH: ${{ matrix.arch }}
+      KEEP_TEST_TMP: '1'
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - name: Prepare temporary workspace
+        run: |
+          mkdir -p "$RUNNER_TEMP/tap-i18n"
+          echo "TMPDIR=$RUNNER_TEMP/tap-i18n" >> "$GITHUB_ENV"
+      - name: Install Meteor
+        run: |
+          curl --fail --show-error --silent --location \
+            "https://install.meteor.com/?release=${METEOR_RELEASE}" \
+            --output "$RUNNER_TEMP/install-meteor.sh"
+          sh "$RUNNER_TEMP/install-meteor.sh"
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+      - name: Install test dependencies
+        run: npm ci --prefix tests
+      - name: Run host, server, and browser tests
+        run: npm test --prefix tests
+      - name: Upload test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.arch }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/tap-i18n/**/*.log
+            ${{ runner.temp }}/tap-i18n/**/*results.json
