@@ -71,6 +71,7 @@ Package.onTest(function (api) {
   api.addFiles('tests/mocha/server/translations.app-test.js', server);
   api.addFiles('tests/mocha/server/initialization.app-test.js', server);
   api.addFiles('tests/mocha/client/reactivity.app-test.js', client);
+  api.addFiles('tests/mocha/client/selection.app-test.js', client);
   api.addFiles('tests/mocha/client/catalog-cache.app-test.js', client);
   api.addFiles('tests/mocha/client/language-tags.app-test.js', client);
 });

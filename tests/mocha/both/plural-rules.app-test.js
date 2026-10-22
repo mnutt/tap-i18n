@@ -76,3 +76,23 @@ describe('TAPi18n - plural rule replacement', function () {
     expect(plurals.get('en-US', 2)).to.equal(1);
   });
 });
+
+describe('TAPi18n - legacy Russian plural and context contract', function () {
+  const namespace = 'tap-test-russian';
+  before(function () {
+    TAPi18next.addResourceBundle('ru', namespace, {
+      items: '__count__ предмет', items_plural_2: '__count__ предмета',
+      items_plural_5: '__count__ предметов', greeting: 'Привет', greeting_male: 'Привет, __name__'
+    });
+  });
+  after(function () { TAPi18next.removeResourceBundle('ru', namespace); });
+  for (const [count, noun] of [[1, 'предмет'], [2, 'предмета'], [5, 'предметов'], [11, 'предметов'], [21, 'предмет']]) {
+    it('uses the legacy Russian suffix for count ' + count, function () {
+      expect(TAPi18next.t(namespace + ':items', {lng: 'ru', count})).to.equal(count + ' ' + noun);
+    });
+  }
+  it('resolves context before interpolating a name', function () {
+    expect(TAPi18next.t(namespace + ':greeting', {lng: 'ru', context: 'male', name: 'Иван'}))
+      .to.equal('Привет, Иван');
+  });
+});
