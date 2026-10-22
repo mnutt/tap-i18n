@@ -1025,11 +1025,11 @@ npm ci --prefix tests
 npm test --prefix tests
 ```
 
-The default validation release is Meteor 2.16. To select another compatible
+The default validation release is Meteor 3.5.1. To select another compatible
 release or Chrome executable:
 
 ```bash
-METEOR_RELEASE=2.16 CHROME_BIN=/path/to/chrome npm test --prefix tests
+METEOR_RELEASE=3.5.1 CHROME_BIN=/path/to/chrome npm test --prefix tests
 ```
 
 Meteor 2.x's bundled Mongo may require Rosetta on Apple Silicon. If it cannot
@@ -1175,3 +1175,7 @@ MIT
 * [i18next v1.11](https://i18next.github.io/i18next/)
 * [simple-schema](https://github.com/Meteor-Community-Packages/meteor-simple-schema)
 * [http-methods](https://github.com/chandonnet/Meteor-http-methods) (preserved source fork)
+
+### Sandstorm fork
+
+See [the pinned baseline, compatibility results and integration boundary](docs/sandstorm-fork.md).

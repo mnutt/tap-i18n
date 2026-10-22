@@ -13,7 +13,7 @@ import {preparePackageFixture} from './package-fixture.mjs';
 
 const testsDir = path.dirname(fileURLToPath(import.meta.url));
 const sourceDir = path.dirname(testsDir);
-const release = process.env.METEOR_RELEASE || '2.16';
+const release = process.env.METEOR_RELEASE || '3.5.1';
 const browserArch = process.env.TEST_CLIENT_ARCH || 'web.browser';
 if (!['web.browser', 'web.browser.legacy'].includes(browserArch)) {
   throw new Error('TEST_CLIENT_ARCH must be web.browser or web.browser.legacy.');
@@ -46,6 +46,9 @@ const cases = [
   {name: 'invalid-config', config: {supported_languages: 'cc'}, error: 'The field supported_languages of project-tap.i18n has to be of type'}
 ];
 const requested = process.argv.slice(2);
+// Real application catalogs are an explicit integration input, not a second
+// maintained copy of Sandstorm's translations in this repository.
+if (process.env.SANDSTORM_I18N_DIR) cases.push({name: 'sandstorm', files: false});
 if (requested.includes('--list')) {
   console.log(cases.map(item => item.name).join('\n'));
   process.exit(0);
@@ -137,6 +140,22 @@ async function prepareFixture(item, directory) {
   await writeFile(path.join(app, 'package.json'), JSON.stringify({private: true, dependencies}));
   await cp(path.join(testsDir, 'mocha'), path.join(app, 'app-tests/mocha'), {recursive: true});
   await cp(path.join(testsDir, 'helpers.js'), path.join(app, 'app-tests/helpers.js'));
+  if (item.name === 'sandstorm') {
+    await rm(path.join(app, 'app-tests/mocha'), {recursive: true});
+    await mkdir(path.join(app, 'app-tests/mocha/both'), {recursive: true});
+    const catalogs = {};
+    await mkdir(path.join(app, 'i18n'));
+    for (const tag of ['en', 'fi', 'fr', 'nl', 'ru', 'zh-CN', 'zh-TW']) {
+      const filename = tag + '.i18n.json';
+      const source = path.join(process.env.SANDSTORM_I18N_DIR, filename);
+      catalogs[tag] = JSON.parse(await readFile(source, 'utf8'));
+      await cp(source, path.join(app, 'i18n', filename));
+    }
+    await writeFile(path.join(app, 'app-tests/catalogs.js'),
+      'export default ' + JSON.stringify(catalogs) + ';\n');
+    await cp(path.join(testsDir, 'integration/sandstorm.app-test.js'),
+      path.join(app, 'app-tests/mocha/both/sandstorm.app-test.js'));
+  }
 
   if (item.catalogProbe) {
     await cp(path.join(testsDir, 'fixtures/catalog-probe'), path.join(app, 'packages/catalog-probe'), {recursive: true});
