@@ -1,0 +1,4 @@
+# Tests are selected explicitly by Package.onTest or copied to fixture apps.
+# Meteor 3 also discovers undeclared package files; do not compile fixture
+# catalogs, host tooling, or the host runner's node_modules as package sources.
+tests/
