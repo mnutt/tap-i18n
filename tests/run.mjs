@@ -316,7 +316,10 @@ async function runScenario(item) {
         // Flush pending log writes before checking the compiler diagnostic.
         await new Promise(resolve => child.log.write('', resolve));
         const output = await readFile(path.join(directory, 'meteor.log'), 'utf8');
-        if (!Number.isInteger(child.exitCode) || child.exitCode === 0 || child.spawnError || !output.includes(item.error)) {
+        // Meteor wraps build diagnostics to terminal width, including phrases
+        // spanning source paths and continuation lines. Match their words.
+        const diagnostic = output.replace(/\s+/g, ' ');
+        if (!Number.isInteger(child.exitCode) || child.exitCode === 0 || child.spawnError || !diagnostic.includes(item.error)) {
           throw new Error(`Expected compiler rejection containing: ${item.error}`);
         }
         return 'expected compiler rejection';
